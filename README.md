@@ -1,6 +1,6 @@
 # quiz-react
 
-Kuis trivia 10 soal pilihan ganda dari [Open Trivia DB](https://opentdb.com), dengan pilihan tingkat kesulitan.
+**Quickfire**: kuis trivia 10 soal pilihan ganda dari [Open Trivia DB](https://opentdb.com), dengan pilihan tingkat kesulitan.
 
 React 19 · TypeScript · Vite · styled-components
 

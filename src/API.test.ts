@@ -20,8 +20,8 @@ describe("parseQuestions", () => {
   });
 
   it("throws on a malformed response", () => {
-    expect(() => parseQuestions(null)).toThrow(/Unexpected response/);
-    expect(() => parseQuestions({ results: "x" })).toThrow(/Unexpected response/);
+    expect(() => parseQuestions(null)).toThrow(/unexpected response/);
+    expect(() => parseQuestions({ results: "x" })).toThrow(/unexpected response/);
   });
 });
 

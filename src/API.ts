@@ -20,9 +20,10 @@ export type QuestionState = {
 };
 
 // https://opentdb.com/api_config.php
+const RATE_LIMITED = "Too many requests. Wait five seconds, then try again.";
 const RESPONSE_ERRORS: Record<number, string> = {
-  1: "Not enough questions for this difficulty.",
-  5: "Too many requests. Wait a few seconds and try again.",
+  1: "Not enough questions at this difficulty right now. Pick another level.",
+  5: RATE_LIMITED,
 };
 
 const isApiResponse = (data: unknown): data is ApiResponse =>
@@ -33,9 +34,9 @@ const isApiResponse = (data: unknown): data is ApiResponse =>
 
 // Questions arrive URL-encoded (encode=url3986) so they can be rendered as plain text, never as HTML.
 export const parseQuestions = (data: unknown): QuestionState[] => {
-  if (!isApiResponse(data)) throw new Error("Unexpected response from the quiz server.");
+  if (!isApiResponse(data)) throw new Error("Open Trivia DB sent an unexpected response. Try again in a moment.");
   if (data.response_code !== 0) {
-    throw new Error(RESPONSE_ERRORS[data.response_code] ?? `Quiz server error (code ${data.response_code}).`);
+    throw new Error(RESPONSE_ERRORS[data.response_code] ?? `Open Trivia DB couldn't serve questions (code ${data.response_code}). Try again in a moment.`);
   }
   return data.results.map(q => {
     const correctAnswer = decodeURIComponent(q.correct_answer);
@@ -49,7 +50,13 @@ export const parseQuestions = (data: unknown): QuestionState[] => {
 
 export const fetchQuizQuestions = async (amount: number, difficulty: Difficulty) => {
   const endpoint = `https://opentdb.com/api.php?amount=${amount}&difficulty=${difficulty}&type=multiple&encode=url3986`;
-  const res = await fetch(endpoint);
-  if (!res.ok) throw new Error(`Quiz server responded ${res.status}. Try again.`);
+  let res: Response;
+  try {
+    res = await fetch(endpoint);
+  } catch {
+    throw new Error("Couldn't reach Open Trivia DB. Check your connection and try again.");
+  }
+  if (res.status === 429) throw new Error(RATE_LIMITED);
+  if (!res.ok) throw new Error(`Open Trivia DB is having trouble (error ${res.status}). Try again in a moment.`);
   return parseQuestions(await res.json());
 };

@@ -1,8 +1,22 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchQuizQuestions } from "./API";
 import type { Difficulty, QuestionState } from "./API";
 import QuestionCard from "./components/QuestionCard";
-import { GlobalStyle, Wrapper } from "./App.style";
+import { ANSWER_KEYS } from "./utils";
+import Results from "./components/Results";
+import { BoltIcon } from "./components/Icons";
+import {
+  Brand,
+  Card,
+  ErrorText,
+  GhostButton,
+  GlobalStyle,
+  Lead,
+  PrimaryButton,
+  Segmented,
+  Shell,
+  Skeleton,
+} from "./App.style";
 
 export type AnswerObject = {
   question: string;
@@ -14,6 +28,7 @@ export type AnswerObject = {
 type Phase = "idle" | "loading" | "playing" | "error";
 
 const TOTAL_QUESTIONS = 10;
+const DIFFICULTIES: Difficulty[] = ["easy", "medium", "hard"];
 
 const App = () => {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -23,9 +38,9 @@ const App = () => {
   const [userAnswers, setUserAnswers] = useState<AnswerObject[]>([]);
   const [difficulty, setDifficulty] = useState<Difficulty>("easy");
 
-  const score = userAnswers.filter(a => a.correct).length;
   const finished = phase === "playing" && userAnswers.length === questions.length;
   const current = questions[number];
+  const answered = userAnswers[number];
 
   const startQuiz = async () => {
     setPhase("loading");
@@ -35,80 +50,112 @@ const App = () => {
       setNumber(0);
       setPhase("playing");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Could not load questions.");
+      setError(e instanceof Error ? e.message : "Couldn't load questions. Try again.");
       setPhase("error");
     }
   };
 
-  const checkAnswer = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const answer = e.currentTarget.value;
+  const answer = (picked: string) => {
+    if (answered) return;
     setUserAnswers(prev => [
       ...prev,
       {
         question: current.question,
-        answer,
-        correct: current.correctAnswer === answer,
+        answer: picked,
+        correct: current.correctAnswer === picked,
         correctAnswer: current.correctAnswer,
       },
     ]);
   };
 
-  const showStart = phase === "idle" || phase === "error";
+  const next = () => setNumber(n => n + 1);
+
+  // A–D / 1–4 answer; Enter on the Next button is handled natively since it takes focus.
+  useEffect(() => {
+    if (phase !== "playing" || finished || answered) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      const k = e.key.toUpperCase();
+      const i = ANSWER_KEYS.includes(k) ? ANSWER_KEYS.indexOf(k) : Number(k) - 1;
+      const picked = current.answers[i];
+      if (picked !== undefined) {
+        e.preventDefault();
+        answer(picked);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   return (
     <>
       <GlobalStyle />
-      <Wrapper>
-        <h1>REACT TYPESCRIPT QUIZ</h1>
-        {showStart && (
-          <>
-            {phase === "error" && (
-              <p className="error" role="alert">
-                {error}
-              </p>
-            )}
-            <button className="start" onClick={startQuiz}>
-              {phase === "error" ? "Try again" : "Start"}
-            </button>
-            <label className="difficulty">
-              <p>Select Difficulty</p>
-              <select
-                value={difficulty}
-                onChange={e => setDifficulty(e.target.value as Difficulty)}>
-                <option value="easy">Easy</option>
-                <option value="medium">Medium</option>
-                <option value="hard">Hard</option>
-              </select>
-            </label>
-          </>
+      <Shell>
+        <Brand>
+          <h1>
+            <BoltIcon />
+            Quickfire
+          </h1>
+          {phase === "playing" && !finished && (
+            <GhostButton onClick={() => setPhase("idle")}>Quit</GhostButton>
+          )}
+        </Brand>
+
+        {(phase === "idle" || phase === "error") && (
+          <Card aria-label="New round">
+            <Lead>Ten multiple-choice trivia questions from Open Trivia DB. Pick an answer and it's locked in.</Lead>
+            <Segmented>
+              <legend>Difficulty</legend>
+              <div className="options">
+                {DIFFICULTIES.map(d => (
+                  <label key={d}>
+                    <input
+                      type="radio"
+                      name="difficulty"
+                      value={d}
+                      checked={difficulty === d}
+                      onChange={() => setDifficulty(d)}
+                    />
+                    {d[0].toUpperCase() + d.slice(1)}
+                  </label>
+                ))}
+              </div>
+            </Segmented>
+            {phase === "error" && <ErrorText role="alert">{error}</ErrorText>}
+            <PrimaryButton onClick={startQuiz}>
+              {phase === "error" ? "Try again" : `Start ${difficulty} round`}
+            </PrimaryButton>
+          </Card>
         )}
-        {phase === "loading" && <div className="loader" role="status" aria-label="Loading questions" />}
-        {phase === "playing" && !finished && <p className="score">Score: {score}</p>}
-        {phase === "playing" && (
+
+        {phase === "loading" && (
+          <Card role="status" aria-label="Loading questions">
+            <Skeleton $h={14} $w="40%" />
+            <Skeleton $h={6} />
+            <Skeleton $h={30} $w="80%" />
+            {ANSWER_KEYS.map(k => (
+              <Skeleton key={k} $h={56} />
+            ))}
+          </Card>
+        )}
+
+        {phase === "playing" && !finished && (
           <QuestionCard
-            questionNumber={number + 1}
-            totalQuestions={questions.length}
             question={current.question}
             answers={current.answers}
-            userAnswer={userAnswers[number]}
-            onAnswer={checkAnswer}
+            questionNumber={number + 1}
+            totalQuestions={questions.length}
+            results={userAnswers.map(a => a.correct)}
+            userAnswer={answered}
+            onAnswer={answer}
+            onNext={next}
           />
         )}
-        {phase === "playing" && userAnswers.length === number + 1 && !finished && (
-          <button className="next" onClick={() => setNumber(n => n + 1)}>
-            Next Question
-          </button>
-        )}
+
         {finished && (
-          <>
-            <p className="score">Game Over</p>
-            <p className="score">Your Score is: {score}</p>
-            <button className="start" onClick={() => setPhase("idle")}>
-              Play Again
-            </button>
-          </>
+          <Results answers={userAnswers} onPlayAgain={startQuiz} onChangeDifficulty={() => setPhase("idle")} />
         )}
-      </Wrapper>
+      </Shell>
     </>
   );
 };

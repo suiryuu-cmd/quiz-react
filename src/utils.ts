@@ -7,3 +7,5 @@ export const shuffleArray = <T,>(array: readonly T[]): T[] => {
   }
   return result;
 };
+
+export const ANSWER_KEYS = ["A", "B", "C", "D"];
