@@ -16,14 +16,14 @@ export const CardWrapper = styled.div`
 `;
 
 type ButtonWrapperProps = {
-  correct: boolean;
-  userClicked: boolean;
+  $correct: boolean;
+  $userClicked: boolean;
 };
 
 export const ButtonWrapper = styled.div<ButtonWrapperProps>`
   transition: all 0.3s ease;
 
-  :hover {
+  &:hover {
     opacity: 0.8;
   }
   button {
@@ -33,10 +33,10 @@ export const ButtonWrapper = styled.div<ButtonWrapperProps>`
     width: 100%;
     height: 40px;
     margin: 5px 0;
-    background: ${({ correct, userClicked }) =>
-      correct
+    background: ${({ $correct, $userClicked }) =>
+      $correct
         ? "linear-gradient(90deg, #66ffa4, #69bc86)"
-        : !correct && userClicked
+        : !$correct && $userClicked
         ? "linear-gradient(90deg, #ff5656, #d16868)"
         : "linear-gradient(90deg, #18285b, #2f6fb1)"};
     border: 3px solid #fff;

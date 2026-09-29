@@ -1,4 +1,4 @@
-import styled, { createdGlobalStyle } from"styled-components";
+import styled, { createGlobalStyle } from "styled-components";
 import bgImage from "./images/winter-bg.jpg";
 import bgImageSm from "./images/summer-bg.jpg";
 
@@ -51,7 +51,7 @@ export const Wrapper = styled.div`
       line-height: 1.1;
       background-color: #fff;
       background-image: linear-gradient(to top, #d2d1d5, #fff 33%);
-      :focus {
+      &:focus {
         background-color: #d2d1d5;
         outline: none;
       }

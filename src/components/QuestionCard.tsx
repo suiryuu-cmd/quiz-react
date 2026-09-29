@@ -1,36 +1,36 @@
 import React from "react";
-import { AnswerObject } from "../App";
+import type { AnswerObject } from "../app";
 import { CardWrapper, ButtonWrapper } from "./QuestionCard.style"
 
 type Props = {
     question: string;
-    answer: string[];
+    answers: string[];
     callback:(e: React.MouseEvent<HTMLButtonElement>) => void;
-    userAnswer: AnswerObject | underfined;
+    userAnswer: AnswerObject | undefined;
     questionNumber: number;
-    totalQuestion: number;
+    totalQuestions: number;
 };
 
 const QuestionCard: React.FC<Props> = ({
     question,
-    answer,
+    answers,
     callback,
     userAnswer,
     questionNumber,
-    totalQuestion,
+    totalQuestions,
 }) => {
     return (
         <CardWrapper>
             <p className="number">
-                Question: {questionNumber}/ {totalQuestion}{" "}
+                Question: {questionNumber}/ {totalQuestions}{" "}
             </p>
             <p dangerouslySetInnerHTML={{  __html: question }} />
             <div>
-                {answer.map((answer, index) => (
+                {answers.map((answer, index) => (
                     <ButtonWrapper
                     key={index}
-                    correct={userAnswer?.correctAnswer === answer}
-                    userClicked={userAnswer?.answer === answer}>
+                    $correct={userAnswer?.correctAnswer === answer}
+                    $userClicked={userAnswer?.answer === answer}>
                         {/* !!userAnswer === userAnswer ? true : false */}
                         <button disabled={!!userAnswer} value={answer} onClick={callback}>
                             <span dangerouslySetInnerHTML={{ __html: answer }} />

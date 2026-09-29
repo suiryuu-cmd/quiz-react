@@ -22,3 +22,11 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Env & tool state
+.env*
+!.env.example
+.claude/
+.impeccable/
+coverage
+*.tsbuildinfo

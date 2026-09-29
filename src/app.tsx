@@ -3,9 +3,9 @@ import { fetchQuizQuestions } from "./API";
 // Components
 import QuestionCard from "./components/QuestionCard";
 // Types
-import { QuestionState } from "./API";
+import type { QuestionState } from "./API";
 // Styles
-import { GlobalStyle, Wrapper } from "./App.styles";
+import { GlobalStyle, Wrapper } from "./app.style";
 import loadingImage from "./images/loading.gif";
 
 export type AnswerObject = {
